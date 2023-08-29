@@ -17,5 +17,325 @@ luego se instala mongoose
 
  y se instala dotenv  
 
- ques es para manejar los archivos de entorno 
+ que es para manejar los archivos de entorno 
+
+ahora se crea el index.js 
+
+y en el archivo package.json en scripts se va a borrar lo que está y se va a poner 
+
+"dev": "nodemon ."
+
+
+y ahora se pone para correr el servidor 
+
+npm run dev 
+esto hara referencua a el scripr que se ha puesto en el package.json
+
+si aparece en el index el console.log("algo") en la parte de la consola es porque ya se encuentra funcionando el servidor
+
+
+
+ahora se hace:
+const express = require('express');
+
+//Creo el servidor
+const app= express();
+
+app.listen(port =4000, () => {
+    console.log('corriendo el servidor ','http://localhost:'+port)
+});
+
+
+esto para que el servidor pueda correr en el puerto 4000 en donde se esta usando express
+
+si yo reviso  localhost:4000 
+ya quedaría habilitado el puerto
+para definir una ruta se hace de la siguiente manera: esto para poder verlo en el servidor 
+
+//primera ruta
+app.get('/', (req, res) => {
+    res.send("hola mundo");
+})
+
+npm install mongodb
+
+ahora ya se instala mongo atlas y mongo compass atlas para poder hacer la conexión el a nube 
+y compass para una conexión local 
+
+y se crea un archivo llamado variable.env
+
+se crea la carpeta config y dentro un archivo db.js
+
+dentro del archivo se crea la constante para que use mongoose 
+y se le va a pasar el path el cual se ha creado que sería el de variable.env que sería para realizar la conexión a la base de datos
+
+para hacer la conexión a la base de datos usando mongoose se hace lo siguiente en el archivo db.js:
+
+
+const mongoose = require('mongoose');
+require('dotenv').config({path : 'variable.env'})
+
+const conectarDB = async () => {
+    try{
+        await mongoose.connect(process.env.DB_MONGO,{
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        })
+        console.log('base de datos conectada');
+    }catch(e){
+        console.log(e);
+        process.exit(1);//se detiene la aplicación
+    }
+}
+module.exports = conectarDB
+
+
+ya con esto se puede acceder o conectar a la base de datos de mongo 
+
+para que la aplicación sea más mantenible y escalable se debe mover el ruteo a otra parte es decir a otro archivo 
+
+por lo cual se crea  la carpeta routes y dentro de esta carpeta se va a crear el archivo productos.js
+
+
+
+ahora se crea la ruta en este archivo, la ruta se crea de la siguiente manera:
+
+
+//rutas para producto
+const express = require('express');
+const router = express.Router();
+
+//api/productos
+router.post('/',() =>{
+    console.log('Creando producto');
+});
+
+module.exports = router;
+
+y ahora para que esta ruta sea leida por el index.js se debe hacer lo siguiente:
+
+app.use('/api/productos',require('./routes/productos'));
+
+
+esto para cuando el usuario digite la ruta de /api/productos va a redirigirlo a lo que se ha programado
+
+ahora como esta ruta tiene el metodo post para hacer o realizar la prueba se realiza mendiante
+postman
+ingresando la url  en este caso sería http://localhost:4000/api/productos
+cuando se hace el envío se va a poder apreciar en la consola que aparece un mensaje el cual dice Creando producto
+con la ruta que se especifico anteriormente
+
+si vamos a tener muchos ruteos el archivo producto.js va a crecer demasiado por lo cual se debe hacer lo siguiente
+
+creamos la carpeta llamada controller
+y un archivo que se llame productoController.js
+
+aquí se van a crear los metodos 
+exports.crearProducto = (req, res) =>{
+    console.log("desde crear producto")
+}
+
+
+y se va a importar en producto.js
+
+se debe modificar la ruta raiz de aquí haciendo que quede así:
+
+router.post('/', productoController.crearProducto);
+
+
+
+ya con esto si vamos a postman me dará el mensaje desde crear producto, es decir que ya con esto
+se ha redirigido la respuesta, en la cual se le esta diciendo que se dirija a controllers y que me importe la 
+el metodo que se acaba de crear de aqui como se le dio un nombre 
+es decir se importo el modulo de la siguiente manera
+const productoController = require('../controllers/productoController');
+aquí es donde ya estoy importando los metodos, por lo cual ya se que importo el metodo por
+esto se puede hacer  en el producto.js el  llamado como se muestra es decir 
+router.post('/', productoController.crearProducto);
+en donde ya se trae el modulo y con el . se le dice que modulo es el que debe ejecutar
+ya con esto y con postman se puede evidenciar que ya envía el mensaje 
+
+
+ya con esto se va a modificar el productoCotroller.js para que no imprima el mensaje pero que imprima el body que será enviado desde postman
+de la siguiente manera
+
+console.log(req.body)
+
+ya con esto lo que haremos es dirigirnos a postman y hacer el post , nos dirigimos a Body y damos clic en raw
+
+ya con esto le vamos a enviar un JSON y ponemos los caracteres del producto 
+
+va a salir undefined por lo cual se debe habilitar para que pueda leer los archivos de tipo json
+esto se hará en el archivo index.js
+configurando un middleware para leer los archivos json
+
+app.use(express.json());
+
+solo con esta linea de código se puede leer json
+
+para el uso de mongoose https://mongoosejs.com/
+
+ahora se va a definir el modelo para realizar la inserción del producto, por lo cual 
+se crea la carpeta models y dentro de este se crea el archivo llamado Producto.js 
+
+ahora el modelo para insertar un nuevo producto es el siguiente:
+const mongoose = require('mongoose');
+
+const ProductoSchema = mongoose.Schema({
+    nombre:{
+        type: String,
+        required: true,
+    },
+    categoria:{
+        type: String,
+        required: true,
+    },
+    ubicacion:{
+        type: String,
+        required: true,
+    },
+    precio:{
+        type: Number,
+        required: true,
+    },
+    fechaCreacion:{
+        type:Date,
+        default: Date.now(),
+    }
+});
+
+module.exports = mongoose.model('Producto',ProductoSchema);
+en donde se ha ingresado los parametros o como está conformado el producto, solo que se le ha agregado una fecha en el cual se puede insertar la fecha por defecto, sin necesidad de que deba ser ingresada
+
+
+ahora productoControllerdebe quedar de la siguiente manera:
+
+const Producto = require("../models/Producto")
+
+
+exports.crearProducto = async (req, res) =>{
+    try{
+        let producto;
+        //creamos el producto
+        producto = new Producto(req.body);
+
+        await producto.save();
+
+        res.send(producto);
+    }catch(e){
+        console.log(e);
+        res.status(500).send("hubo un error",escape)
+    }
+}
+
+si sale un error es por la capitalización es decir por la mayuscula que aparece en Producto
+y en postman se puede hacer el envío de la siguiente manera 
+{
+    "nombre": "coca cola",
+    "categoria": "Bebidas",
+    "ubicacion":"Colombia",
+    "precio": 3
+}
+y se pueden envíar más productos
+
+ahora para poder obtener todos los productos de la lista creada, lo que se hará es:
+
+//obtener todos los productos
+exports.obtenerProductos =async (req,res) => {
+    try {
+        //realizamos la busqueda a la base de datos
+        const productos = await Producto.find();
+        res.json(productos)
+    }catch(e){
+        console.log(e);
+        res.status(500).send("Hubo un error",e);
+    }
+}
+
+esto en el archivo productoController.js
+y se debe hacer la importación o decirle la ruta desde routes/producto.js
+aquí es donde se pondrá el metodo get:
+router.get('/', productoController.obtenerProductos);
+
+ahora se hace la petición desde postman poniendo la ruta
+
+http://localhost:4000/api/productos
+solo que en esta ocación el metodo será el metodo get 
+
+ahora la actualización, que es un metodo un poco más largo  cabe resaltar que el metodo para actualizar es el metodo put 
+
+exports.actualizarProducto = async (req, res) => {
+    try{
+        const{ nombre, categoria, ubicacion, precio} = req.body;
+        let producto = await producto.findById(req.params.id);
+
+        if (!producto){
+            res.status(404).json({message: 'no existe este producto'});
+        }
+        producto.nombre = nombre;
+        producto.categoria = categoria;
+        producto.ubicabion = ubicacion;
+        producto.precio = precio;
+
+        producto= await producto.findOneAndUpdate( {_id: req.params.id} , producto, {new:true} );
+        res.json(producto);
+    }catch(e){
+        console.log(e);
+        res.status(500).send("Ha ocurrido un error",e);
+    }
+
+aquí se realiza la actualización del producto, ahora se abre el postman y se realiza en envío en put
+
+
+ahora el de traer u producto
+exports.obtenerProducto = async (req, res) => {
+    try{
+        let producto = await Producto.findById(req.params.id);
+
+        if (!producto){
+            res.status(404).json({ msg : 'no existe este producto' });
+        }
+        res.json(producto);
+        
+    }catch (e) {
+        console.log(e);
+        res.status(500).send("Ha ocurrido un error",e);
+    }
+}
+
+este es el eliminar:
+
+exports.eliminarProducto = async (req, res) => {
+    try{
+        let producto = await Producto.findById(req.params.id);
+
+        if (!producto){
+            res.status(404).json({ msg : 'no existe este producto' });
+        }
+        await Producto.findOneAndRemove({ _id : req.params.id});
+        res.json({msg: "El producto ha sido eliminado con exito" });
+        
+    }catch (e) {
+        console.log(e);
+        res.status(500).send("Ha ocurrido un error",e);
+    }
+}
+
+ahora se debe tener en cuenta que al momento de hacer una sentencia en el controller se debe 
+poder en el producto.js es decie en routes/producto.js
+
+ya que aquí es donde se va a realizar la acción para que llame al metodo o al controlador
+por tal motivo se debe tener esto en cuenta
+de esta forma:
+router.post('/', productoController.crearProducto);
+router.get('/', productoController.obtenerProductos);
+router.put('/:id', productoController.actualizarProducto);
+router.get('/:id', productoController.obtenerProducto);
+router.delete('/:id', productoController.eliminarProducto);
+
+
+
+
+
+
 

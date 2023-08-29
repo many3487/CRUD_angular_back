@@ -1,0 +1,21 @@
+primero se pone el comando npm init 
+
+se le pone el nombre al servidor en este caso productoapi
+se pone la descripción MEAN API
+
+y el autor
+
+cuando aparesca Isthis ok yes
+
+ahora npm install -D nodemon
+para crear un servidor de desarrollo para que cuando se hagan cambios en el back automaticamente se va a refrescar 
+
+se instala express para el servidor
+npm instal express
+
+luego se instala mongoose
+
+ y se instala dotenv  
+
+ ques es para manejar los archivos de entorno 
+

@@ -17,6 +17,8 @@ luego se instala mongoose
 
  y se instala dotenv  
 
+npm install cors
+
  que es para manejar los archivos de entorno 
 
 ahora se crea el index.js 
@@ -27,8 +29,10 @@ y en el archivo package.json en scripts se va a borrar lo que está y se va a po
 
 
 y ahora se pone para correr el servidor 
+--------
+npm run dev
+********************************
 
-npm run dev 
 esto hara referencua a el scripr que se ha puesto en el package.json
 
 si aparece en el index el console.log("algo") en la parte de la consola es porque ya se encuentra funcionando el servidor
